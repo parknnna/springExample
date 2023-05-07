@@ -1,0 +1,12 @@
+Gradle 이란?
+    Gradle은 오픈소스 빌드 자동화 툴이다. Gradle은 거의 모든 타입의 소프트웨어를 빌드할 수 있는 유연함을 가진다.
+
+Dependency Configuration
+    Gradle 프로젝트에서 선언된 모든 의존성은 사용되는 특정 범위를 가진다.
+    예를 들어 어떤 의존성은 컴파일 할 때에만 사용될 수 있고, 다른 의존성은 런타임할 때에 사용될 수 있다.
+    이렇게 의존성의 범위를 표현한 것을 dependency configuration이라고 한다.
+
+    Implementation: 구현할 때에만 사용된다.
+    compileOnly: 컴파일할 때에만 사용되고 런타임 때에는 사용되지 않는다.
+    runtimeOnly: 런타임 때에만 사용된다.
+    testImplementation: 테스트할 때에만 사용된다.

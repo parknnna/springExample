@@ -1,0 +1,165 @@
+IoC(Inversion of Control)이란?
+    "제어의 역전" 이라는 의미로, 말 그대로 메소드나 객체의 호출작업을 개발자가 결정하는 것이 아니라, 외부에서 결정되는 것을 의미한다.
+    스프링 애플리케이션에서는 오브젝트(빈)의 생성과 의존 관계 설정, 사용, 제거 등의 작업을 애플리케이션 코드 대신 스프링 컨테이너가 담당한다.
+    이를 스프링 컨테이너가 코드 대신 오브젝트에 대한 제어권을 갖고 있다고 해서 IoC라고 부른다.
+    따라서, 스프링 컨테이너를 IoC 컨테이너라고도 부른다.
+
+IOC Container란
+    어플리케이션 컴포넌트의 중앙 저장소
+    빈 설정 소스로 부터 빈 정의를 읽어 드리고, 빈을 구성하고 제공함.
+    스프링에서는 IoC를 담당하는 컨테이너를 빈 팩토리, DI 컨테이너, 애플리케이션 컨텍스트라고 부른다.
+    오브젝트의 생성과 오브젝트 사이의 런타임 관계를 설정하는 DI 관점으로 보면, 컨테이너를 빈 팩토리 또는 DI 컨테이너라고 부른다.
+    그러나 스프링 컨테이너는 단순한 DI 작업보다 더 많은 일을 하는데, DI를 위한 빈 팩토리에 여러 가지 기능을 추가한 것을 애플리케이션 컨텍스트라고 한다.
+    정리하자면, 애플리케이션 컨텍스트는 그 자체로 IoC와 DI 그 이상의 기능을 가졌다고 보면 된다.
+
+Bean
+    spring IOC 컨테이너가 관리하는 객체.
+
+    장점
+        의존성 관리
+        라이프사이클 인터페이스 지원
+            @PostConstruct
+            ...
+
+Bean Factory
+    스프링 컨테이너의 최상위 인터페이스이다.
+    스프링 빈을 관리하고 조회하는 역할을 담당한다.
+    대표적으로 getBean() 메소드를 제공한다.
+
+ApplicationContext
+    애플리케이션 컨텍스트는 빈 팩토리 기능을 모두 상속 받아서 제공한다.
+    public interface ApplicationContext extends EnvironmentCapable, ListableBeanFactory,
+                                                HierarchicalBeanFactory, MessageSource, ApplicationEventPublisher,
+                                                ResourcePatternResolver { }
+    위의 인터페이스에서 extends한 인터페이스들은 모두 빈 팩토리 인터페이스의 서브 인터페이스이며, 빈 팩토리에게 없는 추가 기능을 가지고 있다.
+    따라서, 애플리케이션은 이를 혼합하여 다음과 같은 기능을 제공한다.
+
+어노테이션 기반 자바 코드 설정
+    @Configuration
+    public class AppConfig {
+
+            @Bean
+            public MemberService memberService() {
+                    return new MemberServiceImpl(memberRepository());
+            }
+    }
+
+    @Configuration : 1개 이상의 빈을 제공하는 클래스의 경우 반드시 명시해야 한다.
+    @Bean : 클래스를 빈으로 등록할 때 사용한다.
+
+XML 기반 스프링 빈 설정
+    <beans xmlns="http://www.springframework.org/schema/beans"xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"xsi:schemaLocation="http://www.springframework.org/schema/beans http://
+    www.springframework.org/schema/beans/spring-beans.xsd">
+
+         <bean id="memberService" class="hello.core.member.MemberServiceImpl">
+                 <constructor-arg name="memberRepository" ref="memberRepository"/>
+         </bean>
+    </beans>
+
+    XML 기반의 설정 파일을 보면 자바 코드로 된 설정 파일과 거의 비슷하다는 것을 알 수 있다.
+    XML 기반으로 설정하는 것은 최근에 잘 사용하지 않는다.
+
+
+----------------------- Bean 관련 Annotation -----------------------
+
+@Configuration
+    Configuration 어노테이션은 스프링 IOC Container에게 해당 클래스를 Bean 구성 Class임을 알려주는 것이다.
+
+@Bean
+    ArrayList같은 라이브러리등을 Bean으로 등록하기 위해서는 별도로 해당 라이브러리 객체를 반환하는 Method를 만들고 @Bean어노테이션을 붙혀주면 된다.
+    위의 경우 Bean어노테이션에 아무런 값을 지정하지 않았으므로 Method 이름을 CamelCase로 변경한 것이 Bean id로 등록된다.
+    (ex. 메소드 이름이 arrayList()인 경우 arrayList가 Bean id)
+
+    @Configuration
+    public class ApplicationConfig {
+        // @Bean(name="myarray") 어노테이션에 name 태그를 이용하여 자신이 원하는 Bean id를 만들어 줄수 있다.
+        @Bean
+        public ArrayList<String> array(){
+            return new ArrayList<String>();
+        }
+    }
+
+@Component
+    Component 어노테이션의 경우 개발자가 직접 작성한 Class를 Bean으로 등록하기 위한 어노테이션이다.
+    Component역시 아무런 추가 정보가 없다면 Class의 이름을 Camelcase로 변경한 것이 Bean id로 사용된다.
+    하지만 @Bean과 다르게 @Component는 name이 아닌 value를 이용해 Bean의 이름을 지정한다.
+
+    // @Component(value="myStudent") --Bean id 지정
+    @Component
+    public class Student {
+        public Student() {
+            System.out.println("hi");
+        }
+    }
+
+@Autowired
+    위와 같이 Student가 Pencil에 대한 의존성을 가지고 있는 경우
+    @AutoWired 어노테이션을 이용하여 의존성을 자동으로 주입할 수 있다.
+
+    @Component
+    public class Pencil { ... }
+
+    @Component(value="mystudent")
+    public class Student {
+
+        // @Qualifier("Bean이름") -- 해당 자리에 들어 올수 있는 Bean이 여러개인 경우 주입될 Bean 명시..
+        @AutoWired
+        private Pencil pencil;
+
+        public Student() { System.out.println("hi"); }
+    }
+
+
+
+@ComponentScan
+    @Component, @Service, @Repository, @Controller, @Configuration 어노테이션이 붙은 클래스
+    Bean 들을 찾아서 ApplicationContext에 bean 등록을 해주는 어노테이션입니다.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
